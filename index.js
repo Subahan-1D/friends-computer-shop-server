@@ -1,7 +1,7 @@
 const express = require ("express")
 const cors = require ('cors')
 const app = express ()
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require ('dotenv').config()
 const port = process.env.PORT || 9000 ;
 
@@ -34,6 +34,13 @@ async function run() {
     //Get all ServicesItem data from db
     app.get('/serviceItem',async(req,res)=>{
         const result = await shopsCollection.find().toArray()
+        res.send(result)
+    })
+    //get a single data from database 
+    app.get('/item/:id',async(req,res)=>{
+        const id = req.params.id ;
+        const query = {_id : new ObjectId(id)}
+        const result = await shopsCollection.findOne(query)
         res.send(result)
     })
     // Send a ping to confirm a successful connection
