@@ -29,7 +29,8 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     //const jobsCollection = client.db('soloSphere').collection('jobs')
-    const shopsCollection = client.db('friendsComputer').collection('serviceItem')
+    const shopsCollection = client.db('friendsComputer').collection('serviceItem');
+    const bidsCollection = client.db('friendsComputer').collection('serviceBids');
 
     //Get all ServicesItem data from db
     app.get('/serviceItem',async(req,res)=>{
@@ -43,6 +44,23 @@ async function run() {
         const result = await shopsCollection.findOne(query)
         res.send(result)
     })
+
+    // save a item data in db
+    app.post('/item',async(req,res)=>{
+      const itemData = req.body;
+      const result = await bidsCollection.insertOne(itemData)
+      res.send(result)
+
+    });
+    // save a query service item data in db
+    app.post('/query',async(req,res)=>{
+      const queryData = req.body;
+      const result = await shopsCollection.insertOne(queryData)
+      res.send(result)
+
+    })
+
+    
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
