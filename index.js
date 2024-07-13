@@ -60,7 +60,22 @@ async function run() {
 
     })
 
-    
+    // save a all service item a speacic user
+       app.get("/serviceItems/:email", async (req, res) => {
+         const email = req.params.email;
+         const query = { "user_Info.email": email };
+         const result = await shopsCollection.find(query).toArray();
+         res.send(result);
+       });
+
+       // delete a data from db
+       app.delete('/item/:id',async(req,res)=>{
+        const id = req.params.id;
+        const query ={_id: new ObjectId(id)}
+        const result = await shopsCollection.deleteOne(query)
+        res.send(result)
+       })
+      
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
