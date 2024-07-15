@@ -1,16 +1,22 @@
-const express = require ("express")
-const cors = require ('cors')
-const app = express ()
+const express = require("express");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require ('dotenv').config()
-const port = process.env.PORT || 9000 ;
+const cookieParser = require("cookie-parser");
+require("dotenv").config();
+const app = express();
+const port = process.env.PORT || 9000;
 
-// MIDDLEWARE
+const corsOptions = {
+  origin: ["http://localhost:5173", "https://assignment-11-b49bc.web.app"],
+  credentials: true,
+  optionSuccessStatus: 200,
+};
 
-app.use(cors())
-app.use(express.json())
-
-
+//MIDDLEWARE
+app.use(cors(corsOptions));
+app.use(cookieParser());
+app.use(express.json());
 
 // start mongodb
 
@@ -27,14 +33,27 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    //const jobsCollection = client.db('soloSphere').collection('jobs')
     const shopsCollection = client
       .db("friendsComputer")
       .collection("serviceItem");
     const bidsCollection = client
       .db("friendsComputer")
       .collection("serviceBids");
+
+    // jwt generate
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{
+        expiresIn: "1h",
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
+    });
 
     //Get all ServicesItem data from db
     app.get("/serviceItem", async (req, res) => {
@@ -78,27 +97,27 @@ async function run() {
       res.send(result);
     });
     // update data from db
-     app.put("/item/:id", async (req, res) => {
-       const id = req.params.id;
-       const itemData = req.body;
-       const query = { _id: new ObjectId(id) };
-       const options = { upsert: true };
-       const updateDoc = {
-         $set: {
-           ...itemData,
-         },
-       };
-       const result = await shopsCollection.updateOne(query, updateDoc, options);
-       res.send(result);
-     });
+    app.put("/item/:id", async (req, res) => {
+      const id = req.params.id;
+      const itemData = req.body;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          ...itemData,
+        },
+      };
+      const result = await shopsCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
 
-     // get all item get user by email
-     app.get('/recommended-me/:email', async(req,res)=>{
+    // get all item get user by email
+    app.get("/recommended-me/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email}
-      const result = await bidsCollection.find(query).toArray()
-      res.send(result)
-     })
+      const query = { email };
+      const result = await bidsCollection.find(query).toArray();
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
@@ -110,34 +129,10 @@ async function run() {
 }
 run().catch(console.dir);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-app.get('/',(req,res)=>{
-    res.send('FRIENDS COMPUTER SHOP ')
+app.get("/", (req, res) => {
+  res.send("FRIENDS COMPUTER SHOP ");
 });
 
-app.listen(port,()=>{
-    console.log(`FRIENDS COMPUTER SHOP RUNNING : ${port}`);
-})
+app.listen(port, () => {
+  console.log(`FRIENDS COMPUTER SHOP RUNNING : ${port}`);
+});
