@@ -18,6 +18,25 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 
+// verifyToken jwt
+
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token;
+  console.log(token);
+  if (!token) return res.status(401).send({ message: "unauthorized access" });
+  if (token) {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        console.log(err);
+        res.status(401).send({ message: "unauthorized access" });
+      }
+      console.log(decoded);
+      req.user = decoded;
+      next();
+    });
+  }
+};
+
 // start mongodb
 
 const uri = `mongodb+srv://${process.env.DB_USERS}:${process.env.DB_PASSWORD}@cluster0.yqmtelq.mongodb.net/?appName=Cluster0`;
@@ -94,8 +113,12 @@ async function run() {
     });
 
     // save a all service item a speacic user
-    app.get("/serviceItems/:email", async (req, res) => {
-      const email = req.params.email;
+    app.get("/serviceItems/:email",verifyToken, async (req, res) => {
+        const tokenEmail = req.user.email;
+        const email = req.params.email;
+        if (tokenEmail !== email) {
+          return res.status(403).send({ message: "forbidden access" });
+        }
       const query = { "user_Info.email": email };
       const result = await shopsCollection.find(query).toArray();
       res.send(result);
