@@ -102,6 +102,17 @@ async function run() {
     // save a item data in db
     app.post("/item", async (req, res) => {
       const itemData = req.body;
+         const query = {
+           email: itemData.email,
+           itemId: itemData.itemId,
+         };
+         const alreadyApplied = await bidsCollection.findOne(query);
+         console.log(alreadyApplied);
+         if (alreadyApplied) {
+           return res
+             .status(400)
+             .send("You have already place item in this query page");
+         }
       const result = await bidsCollection.insertOne(itemData);
       res.send(result);
     });
@@ -153,6 +164,26 @@ async function run() {
       const result = await bidsCollection.find(query).toArray();
       res.send(result);
     });
+
+    // get all queries item data form count db
+    app.get('/all-item', async (req,res) =>{
+       const size = parseInt(req.query.size);
+       const page = parseInt(req.query.page) -1;
+        const sort = req.query.sort;
+        const search = req.query.search;
+       console.log(size,page)
+       let query ={
+        product_Name:{ $regex: search, $options: "i" },
+       }
+       let options = {};
+       if (sort) options = { dateline: sort === "asc" ? 1 : -1 };
+      const result = await shopsCollection.find(query,options).skip(page*size).limit(size).toArray()
+      res.send(result)
+    }) ;
+     app.get('/item-count', async (req,res) =>{
+      const count = await shopsCollection.countDocuments()
+      res.send({count})
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
