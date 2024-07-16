@@ -114,6 +114,13 @@ async function run() {
              .send("You have already place item in this query page");
          }
       const result = await bidsCollection.insertOne(itemData);
+      // update service count from db
+      const updateDoc = {
+        $inc: { recommendation_Count: 1 },
+      };
+      const itemQuery = { _id : new ObjectId (itemData.itemId)}
+      const updateRecommendationCount = await shopsCollection.updateOne(itemQuery,updateDoc)
+      console.log(updateRecommendationCount)
       res.send(result);
     });
     // save a query service item data in db
