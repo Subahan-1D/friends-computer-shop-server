@@ -87,7 +87,7 @@ async function run() {
     });
 
     //Get all ServicesItem data from db
-    app.get("/serviceItem", async (req, res) => {
+    app.get("/serviceItem",verifyToken, async (req, res) => {
       const result = await shopsCollection.find().toArray();
       res.send(result);
     });
@@ -124,7 +124,7 @@ async function run() {
       res.send(result);
     });
     // save a query service item data in db
-    app.post("/query", async (req, res) => {
+    app.post("/query", verifyToken,async (req, res) => {
       const queryData = req.body;
       const result = await shopsCollection.insertOne(queryData);
       res.send(result);
@@ -143,14 +143,14 @@ async function run() {
     });
 
     // delete a data from db
-    app.delete("/item/:id", async (req, res) => {
+    app.delete("/item/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await shopsCollection.deleteOne(query);
       res.send(result);
     });
     // update data from db
-    app.put("/item/:id", async (req, res) => {
+    app.put("/item/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const itemData = req.body;
       const query = { _id: new ObjectId(id) };
@@ -165,7 +165,7 @@ async function run() {
     });
 
     // get all item get user by email
-    app.get("/recommended-me/:email", async (req, res) => {
+    app.get("/recommended-me/:email",verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email };
       const result = await bidsCollection.find(query).toArray();
@@ -173,7 +173,7 @@ async function run() {
     });
 
     // get all queries item data form count db
-    app.get('/all-item', async (req,res) =>{
+    app.get('/all-item',verifyToken, async (req,res) =>{
        const size = parseInt(req.query.size);
        const page = parseInt(req.query.page) -1;
         const sort = req.query.sort;
@@ -187,7 +187,7 @@ async function run() {
       const result = await shopsCollection.find(query,options).skip(page*size).limit(size).toArray()
       res.send(result)
     }) ;
-     app.get('/item-count', async (req,res) =>{
+     app.get('/item-count',verifyToken, async (req,res) =>{
       const count = await shopsCollection.countDocuments()
       res.send({count})
     })
