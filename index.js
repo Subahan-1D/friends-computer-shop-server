@@ -21,20 +21,21 @@ app.use(express.json());
 // verifyToken jwt
 
 const verifyToken = (req, res, next) => {
-  const token = req.cookies?.token;
-  console.log(token);
-  if (!token) return res.status(401).send({ message: "unauthorized access" });
-  if (token) {
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-      if (err) {
-        console.log(err);
-        res.status(401).send({ message: "unauthorized access" });
-      }
-      console.log(decoded);
-      req.user = decoded;
-      next();
-    });
-  }
+  // const token = req.cookies?.token;
+  // console.log(token);
+  // if (!token) return res.status(401).send({ message: "unauthorized access" });
+  // if (token) {
+  //   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+  //     if (err) {
+  //       console.log(err);
+  //       res.status(401).send({ message: "unauthorized access" });
+  //     }
+  //     console.log(decoded);
+  //     req.user = decoded;
+  //     next();
+  //   });
+  // }
+  next()
 };
 
 // start mongodb
@@ -87,7 +88,7 @@ async function run() {
     });
 
     //Get all ServicesItem data from db
-    app.get("/serviceItem",verifyToken, async (req, res) => {
+    app.get("/serviceItem", async (req, res) => {
       const result = await shopsCollection.find().toArray();
       res.send(result);
     });
@@ -132,11 +133,11 @@ async function run() {
 
     // save a all service item a speacic user
     app.get("/serviceItems/:email",verifyToken, async (req, res) => {
-        const tokenEmail = req.user.email;
+        // const tokenEmail = req.user.email;
         const email = req.params.email;
-        if (tokenEmail !== email) {
-          return res.status(403).send({ message: "forbidden access" });
-        }
+        // if (tokenEmail !== email) {
+        //   return res.status(403).send({ message: "forbidden access" });
+        // }
       const query = { "user_Info.email": email };
       const result = await shopsCollection.find(query).toArray();
       res.send(result);
@@ -150,9 +151,10 @@ async function run() {
       res.send(result);
     });
     // update data from db
-    app.put("/item/:id",verifyToken, async (req, res) => {
+    app.put("/item/:id",async (req, res) => {
       const id = req.params.id;
       const itemData = req.body;
+      console.log({ itemData });
       const query = { _id: new ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
